@@ -1,5 +1,7 @@
 import StateMachine , {State} from '../../lib/StateMachine.js'
 import InputManager from '../inputManager.js'
+import EventBus from '../EventBus.js'
+import GameEvents from '../GameEvents.js'
 
 // Hero prefab
 export default class Hero extends Phaser.Physics.Arcade.Sprite {
@@ -15,6 +17,8 @@ export default class Hero extends Phaser.Physics.Arcade.Sprite {
         this.direction = direction 
         this.heroVelocity = 100    // in pixels
         this.canTalk = false
+        this.talkTarget = null
+        this.isTalking = false
 
         // set input manager for movement
         this.inputManager = new InputManager(scene)
@@ -45,7 +49,11 @@ class IdleState extends State {
         if(left.isDown || right.isDown || up.isDown || down.isDown) {
             this.stateMachine.transition('move')
             return
-        }else if (Phaser.Input.Keyboard.JustDown(space) && hero.canTalk){
+        }else if (Phaser.Input.Keyboard.JustDown(space) && hero.canTalk && !hero.isTalking){
+            EventBus.emit(GameEvents.START_DIALOGUE, {
+                text: hero.talkTarget.dialogue,
+                speaker: hero.talkTarget.name
+            })
             this.stateMachine.transition('talk')
             return
         }
@@ -89,23 +97,26 @@ class MoveState extends State {
     }
 }
 
+
 class TalkState extends State {
    execute(scene, hero) {
         // use destructuring to make a local copy of the keyboard object
         const { left, right, up, down, space} = hero.keys
 
         // transition to move if pressing a movement key
-        
+        hero.isTalking = true
 
         // locks player in position for duration of conversation
         hero.setVelocity(0)
         hero.anims.stop()
+        hero.canTalk = false
 
         // find way to start conversation here
-        console.log("CONVERSATION")
+        //console.log("HELLO")
 
 
         scene.time.delayedCall(2000, () => {
+            hero.isTalking = false
             if(left.isDown || right.isDown || up.isDown || down.isDown) {
                 this.stateMachine.transition('move')
                 return
@@ -113,7 +124,5 @@ class TalkState extends State {
                 this.stateMachine.transition('idle')
             }
         })
-
-        hero.canTalk = false
     }
 }
