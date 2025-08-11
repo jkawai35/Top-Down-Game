@@ -5,7 +5,8 @@ export default class InputManager {
             up: Phaser.Input.Keyboard.KeyCodes.W,
             down: Phaser.Input.Keyboard.KeyCodes.S,
             left: Phaser.Input.Keyboard.KeyCodes.A,
-            right: Phaser.Input.Keyboard.KeyCodes.D
+            right: Phaser.Input.Keyboard.KeyCodes.D,
+            space: Phaser.Input.Keyboard.KeyCodes.SPACE
         });
     }
 

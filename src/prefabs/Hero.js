@@ -14,7 +14,9 @@ export default class Hero extends Phaser.Physics.Arcade.Sprite {
         // set custom Hero properties
         this.direction = direction 
         this.heroVelocity = 100    // in pixels
+        this.canTalk = false
 
+        // set input manager for movement
         this.inputManager = new InputManager(scene)
         this.keys = this.inputManager.getKeys()
 
@@ -22,6 +24,7 @@ export default class Hero extends Phaser.Physics.Arcade.Sprite {
         scene.heroFSM = new StateMachine('idle', {
             idle: new IdleState(),
             move: new MoveState(),
+            talk: new TalkState(),
         }, [scene, this])   // pass these as arguments to maintain scene/object context in the FSM
     }
 }
@@ -36,11 +39,14 @@ class IdleState extends State {
 
     execute(scene, hero) {
         // use destructuring to make a local copy of the keyboard object
-        const { left, right, up, down } = hero.keys
+        const { left, right, up, down, space} = hero.keys
 
         // transition to move if pressing a movement key
         if(left.isDown || right.isDown || up.isDown || down.isDown) {
             this.stateMachine.transition('move')
+            return
+        }else if (Phaser.Input.Keyboard.JustDown(space) && hero.canTalk){
+            this.stateMachine.transition('talk')
             return
         }
     }
@@ -49,11 +55,14 @@ class IdleState extends State {
 class MoveState extends State {
     execute(scene, hero) {
         // use destructuring to make a local copy of the keyboard object
-        const { left, right, up, down } = hero.keys
+        const { left, right, up, down, space } = hero.keys
 
         // transition to idle if not pressing movement keys
         if(!(left.isDown || right.isDown || up.isDown || down.isDown)) {
             this.stateMachine.transition('idle')
+            return
+        }else if (Phaser.Input.Keyboard.JustDown(space) && hero.canTalk){
+            this.stateMachine.transition('talk')
             return
         }
 
@@ -77,5 +86,34 @@ class MoveState extends State {
         moveDirection.normalize()
         hero.setVelocity(hero.heroVelocity * moveDirection.x, hero.heroVelocity * moveDirection.y)
         hero.anims.play(`walk-${hero.direction}`, true)
+    }
+}
+
+class TalkState extends State {
+   execute(scene, hero) {
+        // use destructuring to make a local copy of the keyboard object
+        const { left, right, up, down, space} = hero.keys
+
+        // transition to move if pressing a movement key
+        
+
+        // locks player in position for duration of conversation
+        hero.setVelocity(0)
+        hero.anims.stop()
+
+        // find way to start conversation here
+        console.log("CONVERSATION")
+
+
+        scene.time.delayedCall(2000, () => {
+            if(left.isDown || right.isDown || up.isDown || down.isDown) {
+                this.stateMachine.transition('move')
+                return
+            }else{
+                this.stateMachine.transition('idle')
+            }
+        })
+
+        hero.canTalk = false
     }
 }
