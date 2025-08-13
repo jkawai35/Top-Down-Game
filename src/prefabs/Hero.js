@@ -1,5 +1,5 @@
 import StateMachine , {State} from '../../lib/StateMachine.js'
-import InputManager from '../inputManager.js'
+import InputManager from '../managers/inputManager.js'
 import EventBus from '../EventBus.js'
 import GameEvents from '../GameEvents.js'
 
